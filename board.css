@@ -1,0 +1,76 @@
+.board-viewport {
+  margin-top: 22px;
+  padding: 14px 8px 8px;
+  overflow-x: auto;
+  border: 1px solid #dce7de;
+  border-radius: 16px;
+  background: #edf2ee;
+  overscroll-behavior-x: contain;
+}
+
+.board-viewport:focus-visible {
+  outline: 3px solid #e69f72;
+  outline-offset: 3px;
+}
+
+.pcb-illustration {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+
+.pcb-outline {
+  stroke-width: .38;
+  stroke-linejoin: round;
+}
+
+.pcb-main { fill: #e0ebe5; stroke: #93b2a0; }
+.pcb-sub { fill: #d3e7dd; stroke: #85aa98; }
+.pcb-junction { fill: #bd9c65; }
+.pcb-board-label {
+  fill: #739080;
+  font: 700 2.4px 'Microsoft YaHei', sans-serif;
+  letter-spacing: .18px;
+  pointer-events: none;
+}
+
+.pcb-control { cursor: pointer; outline: none; }
+.pcb-control .pcb-body {
+  fill: #f8faf8;
+  stroke: #a7bcb0;
+  stroke-width: .38;
+}
+.pcb-control.editable .pcb-body { fill: #fff5ed; stroke: #dca27f; }
+.pcb-control .pcb-inner { fill: none; stroke: #cbd9d0; stroke-width: .28; }
+.pcb-control:hover .pcb-body,
+.pcb-control:focus-visible .pcb-body { stroke: #b96543; stroke-width: .7; }
+.pcb-control.selected .pcb-body { fill: #c96f4a; stroke: #a75031; stroke-width: .5; }
+.pcb-control.selected .pcb-inner { stroke: #f2b9a1; }
+.pcb-label, .pcb-ref {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  font-family: 'DM Sans', 'Microsoft YaHei', sans-serif;
+}
+.pcb-label { fill: #496457; font-size: 2.55px; font-weight: 700; }
+.pcb-label-small { font-size: 1.8px; }
+.pcb-ref { fill: #83998c; font-size: 1.9px; font-weight: 500; }
+.pcb-control.side .pcb-ref { font-size: 1.65px; }
+.pcb-control.editable .pcb-label { fill: #a75534; }
+.pcb-control.editable .pcb-ref { fill: #bb866c; }
+.pcb-control.selected .pcb-label { fill: #fff; }
+.pcb-control.selected .pcb-ref { fill: #ffe2d0; }
+.board-caption { margin: 10px 3px 0; color: #7b8d82; font-size: 12px; line-height: 1.5; }
+
+@media (min-width: 1201px) and (max-width: 1450px) {
+  .shell { grid-template-columns: 190px minmax(0, 1fr) 260px; }
+  .sidebar, .inspector { padding: 30px 18px; }
+  .workspace { padding: 32px 22px 50px; }
+  .board-card { padding: 18px; }
+}
+
+@media (max-width: 700px) {
+  .board-viewport { margin-top: 16px; padding: 10px 5px 6px; }
+  .pcb-illustration { min-width: 680px; }
+}

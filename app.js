@@ -1,27 +1,32 @@
 import {CONTROLS,KEYS,newProfile,validateProfile,encodeProfile,decodeProfile,patchUf2,actionLabel} from './profile.js';
+import {boardMarkup,physicalControlByRef,refForAction} from './board-view.js';
 
 const $=selector=>document.querySelector(selector);
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const STORE='tourbox-studio-profiles-v1';
-let profiles, current=0, selected=0, device=null, toastTimer;
+let profiles, current=0, selected=0, selectedPhysical='main.UA12', device=null, toastTimer;
 try {
   const saved=JSON.parse(localStorage.getItem(STORE)||'null');
   profiles=Array.isArray(saved)&&saved.length?saved.map(validateProfile):[newProfile()];
 } catch { profiles=[newProfile()]; }
-const matrix=[
-  {title:'Side',ref:'副 SW11'}, {title:'Scroll 按压',ref:'副 SW22'}, {id:0}, {title:'Top',ref:'主 UA13'}, {id:1},
-  {id:5}, {id:2}, {title:'Knob 按压',ref:'主 CE11-1'}, {title:'Tall',ref:'主 UA24'}, {title:'Short',ref:'主 UA25'},
-  {title:'Tour',ref:'主 UB32'}, {id:3}, {title:'上',ref:'主 UB33'}, {title:'C1',ref:'主 UB34'}, {title:'C2',ref:'主 UB35'},
-  {title:'Dial 按压',ref:'副 SW41A'}, {id:4}, {title:'左',ref:'主 UA42'}, {title:'下',ref:'主 UA43'}, {title:'右',ref:'主 UA44'}
-];
+$('#pcb-board').innerHTML=boardMarkup();
+$('#directions').innerHTML=[[6,'↑'],[7,'↓'],[8,'←'],[9,'→']].map(([id,label])=>`<button class="direction" data-control="${id}" aria-label="${CONTROLS[id].name}" aria-pressed="false">${label}</button>`).join('');
 function message(text) {const el=$('#toast');el.textContent=text;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),4800);}
 function save() {try{localStorage.setItem(STORE,JSON.stringify(profiles));}catch{message('浏览器无法保存预设，请及时导出 JSON。');}}
 function refresh() {
   const p=profiles[current];
   $('#profile-title').textContent=p.name;
   $('#profile-list').innerHTML=profiles.map((x,i)=>`<button class="profile ${i===current?'active':''}" data-profile="${i}"><span class="profile-icon">${String(i+1).padStart(2,'0')}</span>${escapeHtml(x.name)}</button>`).join('');
-  $('#matrix').innerHTML=matrix.map((x,i)=>x.id===undefined?`<div class="matrix-key" aria-label="${escapeHtml(x.title)}，由原版 Console 设置">${escapeHtml(x.title)}<small>${escapeHtml(x.ref)}</small></div>`:`<button class="matrix-key extra ${selected===x.id?'selected':''}" data-control="${x.id}">${escapeHtml(CONTROLS[x.id].name)}<small>${escapeHtml(CONTROLS[x.id].ref)}</small></button>`).join('');
-  $('#directions').innerHTML=[[6,'↑'],[7,'↓'],[8,'←'],[9,'→']].map(([id,label])=>`<button class="direction ${selected===id?'selected':''}" data-control="${id}" aria-label="${CONTROLS[id].name}">${label}</button>`).join('');
+  document.querySelectorAll('[data-physical]').forEach(el=>{const active=el.dataset.physical===selectedPhysical;el.classList.toggle('selected',active);el.setAttribute('aria-pressed',String(active));});
+  document.querySelectorAll('#directions [data-control]').forEach(el=>{const active=Number(el.dataset.control)===selected;el.classList.toggle('selected',active);el.setAttribute('aria-pressed',String(active));});
+  if(selected===null){
+    const c=physicalControlByRef(selectedPhysical), [board,ref]=c.ref.split('.');
+    $('#inspector').innerHTML=`<div class="section-head"><span class="eyebrow">CONTROL DETAILS</span><h2>${escapeHtml(c.label)} ？</h2><p>${board==='main'?'主板':'副板'} ${escapeHtml(ref)}${c.matrix?' · '+escapeHtml(c.matrix):''}</p></div>
+      <h3>原版 Console 控件</h3><p>${c.detail?escapeHtml(c.detail)+'由':'此按键由'} TourBox Console 处理，可在官方软件中设置动作。</p>
+      <p class="hint">位号和位置来自 PCB；Console 名称为按位置选定的候选，首次接板时请逐项核对。</p>
+      <div style="margin-top:30px"><button class="text-button" id="delete-profile">删除当前预设</button></div>`;
+    return;
+  }
   const c=CONTROLS[selected], a=p.actions[selected];
   $('#inspector').innerHTML=`<div class="section-head"><span class="eyebrow">CONTROL SETTINGS</span><h2>${escapeHtml(c.name)}</h2><p>${escapeHtml(c.ref)} · ${escapeHtml(c.position)}</p></div>
     <h3>键盘快捷键</h3><p>按住实体控件时发送；松开时释放。</p>
@@ -38,12 +43,15 @@ function download(name,bytes,type) {const blob=new Blob([bytes],{type}),url=URL.
 function fileName(name) {return name.replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').slice(0,40)||'preset';}
 document.addEventListener('click',event=>{
   const profile=event.target.closest('[data-profile]'); if(profile){current=Number(profile.dataset.profile);refresh();return;}
-  const control=event.target.closest('[data-control]'); if(control){selected=Number(control.dataset.control);refresh();return;}
+  const physical=event.target.closest('[data-physical]'); if(physical){selectPhysical(physical.dataset.physical);return;}
+  const control=event.target.closest('[data-control]'); if(control){selected=Number(control.dataset.control);selectedPhysical=refForAction(selected);refresh();return;}
   if(event.target.id==='delete-profile'){
     if(profiles.length===1){message('至少保留一个预设。');return;}
     if(confirm(`删除“${profiles[current].name}”？`)){profiles.splice(current,1);current=0;save();refresh();}
   }
 });
+function selectPhysical(ref){const control=physicalControlByRef(ref);if(!control)return;selected=control.action??null;selectedPhysical=ref;refresh();}
+document.addEventListener('keydown',event=>{const physical=event.target.closest?.('[data-physical]');if(physical&&(event.key==='Enter'||event.key===' ')){event.preventDefault();selectPhysical(physical.dataset.physical);}});
 $('#inspector').addEventListener('change',event=>{
   const p=profiles[current], el=event.target;
   if(el.id==='key-select') p.actions[selected].key=Number(el.value);

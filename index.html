@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#101a1c">
   <title>TourBox Studio · 改版预设编辑器</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./board.css">
 </head>
 <body>
   <header class="topbar">
@@ -23,15 +24,16 @@
     </aside>
 
     <section class="workspace">
-      <div class="workspace-top"><div><span class="eyebrow">BOARD LAYOUT</span><h2 id="profile-title"></h2><p>选择一个橙色控件，设置它的键盘快捷键。</p></div><button id="rename" class="button outline">重命名</button></div>
-      <div class="notice"><span class="notice-mark">i</span><span>布局名称是基于 PCB 位置的候选映射。首次接板后请逐键确认，特别是侧键和旋钮方向。</span></div>
+      <div class="workspace-top"><div><span class="eyebrow">BOARD LAYOUT</span><h2 id="profile-title"></h2><p>按 PCB 顶视位置选择控件，设置新增键和摇杆。</p></div><button id="rename" class="button outline">重命名</button></div>
+      <div class="notice"><span class="notice-mark">i</span><span>控件位置依据当前 PCB 绘制；标“？”的原版 Console 名称仍是候选，接板后请逐键确认。</span></div>
       <div class="board-card">
-        <div class="board-top"><div><span class="eyebrow">YOUR CUSTOM BOARD</span><h3>控件布局</h3></div><div class="legend"><span><i class="dot accent"></i>可配置</span><span><i class="dot gray"></i>原版 Console</span></div></div>
-        <div class="board-surface"><div class="rotaries"><div class="rotary"><span class="dial large"></span><b>Knob</b><small>主旋钮</small></div><div class="rotary"><span class="dial medium"></span><b>Dial</b><small>副转盘</small></div><div class="rotary"><span class="roller"></span><b>Scroll</b><small>滚轮</small></div><div class="rotary joystick"><span class="stick"></span><b>Joystick</b><small>方向与按压可配置</small></div></div>
-          <div id="matrix" class="matrix" aria-label="按键布局"></div>
+        <div class="board-top"><div><span class="eyebrow">YOUR CUSTOM BOARD</span><h3>PCB 顶视图</h3></div><div class="legend"><span><i class="dot accent"></i>可配置</span><span><i class="dot gray"></i>原版 Console</span></div></div>
+        <div class="board-viewport" tabindex="0" aria-label="主副板 PCB 顶视图，窄屏可横向滚动">
+          <svg id="pcb-board" class="pcb-illustration" viewBox="-6 -6 155 113" xmlns="http://www.w3.org/2000/svg" aria-label="主副板按拼接焊盘对齐的控件位置"></svg>
         </div>
+        <p class="board-caption">主、副板按拼接焊盘对齐；点击控件可查看位号和功能。窄屏可横向滑动。</p>
         <div class="joystick-controls"><div><strong>摇杆方向</strong><small>默认关闭，接板后校准并确认方向</small></div><div id="directions" class="directions"></div></div>
-        <div class="board-foot"><span>4 × 5 矩阵</span><span>3 个编码器</span><span>双轴摇杆</span></div>
+        <div class="board-foot"><span>2026-11-26 PCB 顶视坐标</span><span>20 个按压</span><span>3 个编码器</span></div>
       </div>
       <div class="action-strip"><div><strong>准备好应用了吗？</strong><p>临时应用可立即试用；下载固件可在断电后保留预设。</p></div><div><button id="apply" class="button outline">临时应用到设备</button><button id="download" class="button primary">下载可刷入固件</button></div></div>
       <details class="help"><summary>如何使用和刷写？</summary><ol><li>选择控件，设置按键与修饰键。预设自动保存在当前浏览器。</li><li>不同网站的预设不会自动同步。如需迁移，请在旧网站导出 JSON，再在此处导入。</li><li>“临时应用”需要桌面版 Chrome 或 Edge，并需要设备运行此项目的固件；断电后失效。</li><li>“下载可刷入固件”会把当前预设写入 UF2 应用镜像。仅在确认实际模块、引导程序和 PCB 接线后，复制到对应 UF2 磁盘。</li><li>原版控件的动作、组合与 TourMenu 仍在 TourBox Console 中配置。</li></ol><p>第三编码器需要两根已规划的飞线；矩阵复用 NFC 引脚，若设备仍处于 NFC 模式将阻止扫描。硬件、复合 USB 和 Console 共存仍需实板验证。</p><p><a href="./licenses/README.txt">固件第三方许可说明</a></p></details>
